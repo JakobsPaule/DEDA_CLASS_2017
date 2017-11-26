@@ -5,7 +5,7 @@ import os
 from bs4 import BeautifulSoup
 
 # import config file with credentials - path needs to be adapted
-path = "C:/Users/pjakob/Documents/16_Master/DEDA/LinkedIn_Project"
+path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017"
 os.chdir(path)
 from CONFIG import *
 
@@ -21,10 +21,10 @@ with requests.Session() as session:
 
     # get all input values / loop over the inputs / identify the csrftoken and get the value
     inputs = soup.find_all('input')
-    for i in inputs:
+    for element in inputs:
         try:
-            if i['name'] == 'loginCsrfParam':
-                csrfparamvalue = i['value']
+            if element['name'] == 'loginCsrfParam':
+                csrfparamvalue = element['value']
         except LookupError:
             print('Lookuperror')
     # set values for the login form
@@ -54,7 +54,7 @@ with requests.Session() as session:
 
 
     print(len(results))
-    a = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1')
+    #a = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1')
 
 # Risk = Noisy Data as Strings like Headhunter would have to be excluded
 # Loop over results --> results / 10 as every page has 10 results 
