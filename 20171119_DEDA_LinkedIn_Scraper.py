@@ -55,7 +55,7 @@ with requests.Session() as session:
         page = session.get(searchURL)
         results.append(page)
     
-    
+    # empty array where all result strings are stored
     all_cities = list()
     results_per_page = amount = list(range(1,11))
     # loop over every result page and retrieve the location
@@ -67,12 +67,13 @@ with requests.Session() as session:
         code = page_soup.body.find_all('code')
         # the 14th code tag of each page contains the user information
         data_code = code[14].contents[0]
-        #split the data string for every location 
+        # split the data string for every location 
         location_texts = data_code.split('"location":"')
         cities = list()
         # loop over locations and print out 
         for text in location_texts:
             location = text.partition(",")[0]
+            print(location)
             cities.append(location)
         cities.pop(0)
         all_cities.extend(cities)
@@ -87,6 +88,7 @@ with requests.Session() as session:
     
     
 # Risk = Noisy Data as Strings like Headhunter would have to be excluded
+# Improvement = implementation should be more generic ( without hardcoded index 14 & paging )
 # Loop over results --> results / 10 as every page has 10 results 
 # page = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1');
 # Optional extension for the header parameters
