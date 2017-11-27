@@ -3,6 +3,8 @@
 import requests
 import os
 from bs4 import BeautifulSoup
+import pandas
+from collections import Counter
 
 # import config file with credentials - path needs to be adapted
 path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017"
@@ -36,26 +38,54 @@ with requests.Session() as session:
     # open up the session by logging in successfully
     login_data = dict(session_key=username,session_password=password,isJsEnabled=jsenabled,loginCsrfParam=csrfparamvalue)
     session.post(loginurl,data=login_data,headers={"referer":"https://www.linkedin.com/"})
-   
-    # Setup search parameters
+
+    # Setup search parameters region and search term
     searchTerm = "blockchain"
     searchRegion = "de"
     searchString = "https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22" + searchRegion + "%3A0%22%5D&keywords=" + searchTerm + "&origin=FACETED_SEARCH"
     # Set range for the loop - should be dynamic
     amount = list(range(1,15))
-    # Get results page for every page
+    
+    # Get results page for every page and store them in an array
     results = list()
-    for i in amount:
+    for pageNumber in amount:
         # paging string
-        pagingString = "&page=" + str(i)
+        pagingString = "&page=" + str(pageNumber)
         searchURL = searchString + pagingString
         page = session.get(searchURL)
         results.append(page)
-
-
-    print(len(results))
-    #a = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1')
-
+    
+    
+    all_cities = list()
+    results_per_page = amount = list(range(1,11))
+    # loop over every result page and retrieve the location
+    for pages in results:
+        page_soup = BeautifulSoup(page.content)
+# =============================================================================
+#         # code encapsulates all data
+# =============================================================================
+        code = page_soup.body.find_all('code')
+        # the 14th code tag of each page contains the user information
+        data_code = code[14].contents[0]
+        #split the data string for every location 
+        location_texts = data_code.split('"location":"')
+        cities = list()
+        # loop over locations and print out 
+        for text in location_texts:
+            location = text.partition(",")[0]
+            cities.append(location)
+        cities.pop(0)
+        all_cities.extend(cities)
+    
+    print(all_cities)
+    
+    # get the count of each City and show a diagram for the location distribution
+    loc_count = Counter(all_cities)
+    loc_dataframe = pandas.DataFrame.from_dict(loc_count, orient='index')
+    loc_dataframe.plot(kind='bar')
+    
+    
+    
 # Risk = Noisy Data as Strings like Headhunter would have to be excluded
 # Loop over results --> results / 10 as every page has 10 results 
 # page = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1');
