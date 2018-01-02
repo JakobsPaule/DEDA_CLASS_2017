@@ -5,9 +5,11 @@ import os
 from bs4 import BeautifulSoup
 import pandas
 from collections import Counter
+import matplotlib.pyplot as plt
+import numpy as np
 
 # import config file with credentials - path needs to be adapted
-path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017"
+path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017_PJ"
 os.chdir(path)
 from CONFIG import *
 
@@ -44,7 +46,7 @@ with requests.Session() as session:
     searchRegion = "de"
     searchString = "https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22" + searchRegion + "%3A0%22%5D&keywords=" + searchTerm + "&origin=FACETED_SEARCH"
     # Set range for the loop - should be dynamic
-    amount = list(range(1,15))
+    amount = list(range(1,17))
     
     # Get results page for every page and store them in an array
     results = list()
@@ -52,6 +54,7 @@ with requests.Session() as session:
         # paging string
         pagingString = "&page=" + str(pageNumber)
         searchURL = searchString + pagingString
+        print(searchURL)
         page = session.get(searchURL)
         results.append(page)
     
@@ -60,7 +63,7 @@ with requests.Session() as session:
     results_per_page = amount = list(range(1,11))
     # loop over every result page and retrieve the location
     for pages in results:
-        page_soup = BeautifulSoup(page.content)
+        page_soup = BeautifulSoup(pages.content, 'html.parser')
 # =============================================================================
 #         # code encapsulates all data
 # =============================================================================
@@ -78,20 +81,26 @@ with requests.Session() as session:
         cities.pop(0)
         all_cities.extend(cities)
     
-    print(all_cities)
+    # remove unnecessary information
+    length = len(all_cities)
+    for x in range(0, length):
+        all_cities[x] = all_cities[x].replace(' und Umgebung', '')
+    
+
     
     # get the count of each City and show a diagram for the location distribution
     loc_count = Counter(all_cities)
-    loc_dataframe = pandas.DataFrame.from_dict(loc_count, orient='index')
-    loc_dataframe.plot(kind='bar')
+    loc_dataframe = pandas.DataFrame.from_dict(loc_count, orient='index').reset_index()
+    loc_dataframe.columns = ['Cities', 'Talents']
     
+    # plot the graph
+    y_pos = np.arange(len(loc_dataframe))
     
-    
-# Risk = Noisy Data as Strings like Headhunter would have to be excluded
-# Improvement = implementation should be more generic ( without hardcoded index 14 & paging )
-# Loop over results --> results / 10 as every page has 10 results 
-# page = session.get('https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22de%3A0%22%5D&keywords=blockchain&origin=FACETED_SEARCH&page=1');
-# Optional extension for the header parameters
-# "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8","accept-encoding":"gzip, deflate, br","accept-language":"de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7","cookie":cookies,"referer":"https://www.linkedin.com/","upgrade-insecure-requests":1,"user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"})
-# retrieve auth token from the 
-# cookies = session.cookies.get_dict()
+    plt.bar(y_pos, loc_dataframe['Talents'], align='center', alpha=0.5)
+    plt.xticks(y_pos, loc_dataframe['Cities'])
+    plt.ylabel('Talents')
+    plt.title('Blockchain Talents per city in Germany')
+    plt.xticks(rotation=90)
+    plt.savefig('Cities.png')
+    plt.show()
+    plt.savefig('Cities.pdf')
