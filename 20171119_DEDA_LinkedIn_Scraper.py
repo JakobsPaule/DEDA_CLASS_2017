@@ -8,6 +8,11 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 
+# packages for maps visualization
+import googlemaps
+import gmaps
+import gmplot
+
 # import config file with credentials - path needs to be adapted
 path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017_PJ"
 os.chdir(path)
@@ -46,7 +51,7 @@ with requests.Session() as session:
     searchRegion = "de"
     searchString = "https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22" + searchRegion + "%3A0%22%5D&keywords=" + searchTerm + "&origin=FACETED_SEARCH"
     # Set range for the loop - should be dynamic
-    amount = list(range(1,17))
+    amount = list(range(1,19))
     
     # Get results page for every page and store them in an array
     results = list()
@@ -85,8 +90,7 @@ with requests.Session() as session:
     length = len(all_cities)
     for x in range(0, length):
         all_cities[x] = all_cities[x].replace(' und Umgebung', '')
-    
-
+        all_cities[x] = all_cities[x].replace('Kreisfreie Stadt ', '')
     
     # get the count of each City and show a diagram for the location distribution
     loc_count = Counter(all_cities)
@@ -104,3 +108,33 @@ with requests.Session() as session:
     plt.savefig('Cities.png')
     plt.show()
     plt.savefig('Cities.pdf')
+
+# Maps integration 
+api_key = payload['api_key']
+
+gmaps = googlemaps.Client(key=api_key)
+gmap = gmplot.GoogleMapPlotter(latitudes[0], longitudes[0], 16)
+
+# Geocoding a city
+# geocode_result = gmaps.geocode(all_cities[0])
+
+latitudes = list()
+longitudes = list()
+
+# loop over all cities and get the geocoding --> also for duplicates for density on heatmap
+for city in all_cities:
+    geocode_result = gmaps.geocode(city)
+    latitudes.append(geocode_result[0]['geometry']['bounds']['northeast']['lat'])
+    longitudes.append(geocode_result[0]['geometry']['bounds']['northeast']['lng'])
+
+# try different plots / heatmap, scatter, marker
+gmap.heatmap(latitudes, longitudes)
+#gmap.plot(latitudes, longitudes, 'cornflowerblue', edge_width=10)
+#gmap.scatter(latitudes, longitudes, '#3B0B39', size=40, marker=False)
+#gmap.scatter(latitudes, longitudes, 'k', marker=True)
+
+gmap.draw("TalentMap3.html")
+    # application of maps
+    # application of SVM --> what kind of two groups?
+    # European / American 
+    # regression of salaries? --> 
