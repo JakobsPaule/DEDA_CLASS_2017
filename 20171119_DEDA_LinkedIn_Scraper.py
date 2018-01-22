@@ -96,18 +96,20 @@ with requests.Session() as session:
     loc_count = Counter(all_cities)
     loc_dataframe = pandas.DataFrame.from_dict(loc_count, orient='index').reset_index()
     loc_dataframe.columns = ['Cities', 'Talents']
+    # sort descending
+    loc_dataframe = loc_dataframe.sort_values('Talents', ascending= False)
     
     # plot the graph
     y_pos = np.arange(len(loc_dataframe))
     
-    plt.bar(y_pos, loc_dataframe['Talents'], align='center', alpha=0.5)
+    plt.bar(y_pos, loc_dataframe['Talents'], alpha=0.5)
     plt.xticks(y_pos, loc_dataframe['Cities'])
     plt.ylabel('Talents')
     plt.title('Blockchain Talents per city in Germany')
     plt.xticks(rotation=90)
-    plt.savefig('Cities.png')
+    plt.savefig('Cities2.png')
     plt.show()
-    plt.savefig('Cities.pdf')
+    plt.savefig('Cities2.pdf')
 
 # Maps integration 
 api_key = payload['api_key']
@@ -134,7 +136,7 @@ gmap.heatmap(latitudes, longitudes)
 #gmap.scatter(latitudes, longitudes, 'k', marker=True)
 
 gmap.draw("TalentMap3.html")
-    # application of maps
+
     # application of SVM --> what kind of two groups?
     # European / American 
     # regression of salaries? --> 
