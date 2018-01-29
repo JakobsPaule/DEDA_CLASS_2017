@@ -23,6 +23,11 @@ import googlemaps
 import gmaps
 import gmplot
 
+# packages for the gender predictions
+import nltk
+from nltk.corpus import names as corp
+import random
+
 # import config file with credentials - path needs to be adapted
 path = "/Users/pauljakob/Docs/00_Uni/04_DEDA/Projects/DEDA_CLASS_2017_PJ"
 os.chdir(path)
@@ -198,6 +203,12 @@ gmap.draw("TalentMapAll.html")
     A neural network is trained by using census data available via: https://www.ssa.gov/oact/babynames/limits.html
     It then is used to categorize all people that have been found by gender.
 '''
+
+# helper function
+def gender_features(name):
+    return {"last_letter": name[-1],
+            "vowel": (name[-1] in 'aeiouy')}  # feature set
+
 # remove unnecessary information of the first names (double name, titles, etc)
 length_n = len(all_names)
 idx_pop = list()
@@ -214,8 +225,53 @@ for x in range(0, length_n):
 # only one to pop therefore no loop
 all_names.pop(idx_pop[0])
 
+# Now the model prediction starts - Using NLKTs Naive Bayes Model
+# retrieve test set
+labeled_names = ([(name, "male") for name in names.words("male.txt")] +
+                     [(name, "female") for name in names.words("female.txt")])
 
+# Mix up the list
+random.shuffle(labeled_names)
 
+#Process the names through feature extractor
+feature_sets = [(gender_features(n), gender)
+                for (n, gender) in labeled_names]
+
+# Divide the feature sets into training and test sets
+train_set, test_set = feature_sets[500:], feature_sets[:500]
+
+# Train the naiveBayes classifier
+classifier = nltk.NaiveBayesClassifier.train(train_set)
+
+# Test the accuracy of the classifier on the test data
+print(nltk.classify.accuracy(classifier, test_set))  # returns 81%
+
+# Predict the gender for all names in the list
+all_genders = list()
+length_g = len(all_names)
+for x in range(0, length_g):
+    gender = classifier.classify(gender_features(all_names[x]))
+    print(gender)
+    all_genders.append(gender)
+
+gender_count = Counter(all_genders)
+gender_dataframe = pandas.DataFrame.from_dict(gender_count, orient='index').reset_index()
+gender_dataframe.columns = ['Gender', 'Talents']
+# sort descending
+gender_dataframe = gender_dataframe.sort_values('Talents', ascending= False)
+
+# plot the graph
+y_pos_g = np.arange(len(gender_dataframe))
+
+plt.bar(y_pos_g, gender_dataframe['Talents'])
+plt.xticks(y_pos_g, gender_dataframe['Gender'])
+plt.ylabel('Talents')
+plt.title('Gender distribution for BC Talents in Germany')
+plt.xticks(rotation=90)
+
+plt.show()
+plt.savefig('Gender.png')
+plt.savefig('demo.png', transparent=True)
 
 '''
 Possible Improvements:
