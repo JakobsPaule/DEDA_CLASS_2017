@@ -68,10 +68,10 @@ with requests.Session() as session:
 
     # Setup search parameters region and search term
     searchTerm = "blockchain"
-    searchRegion = "us"
+    searchRegion = "de"
     searchString = "https://www.linkedin.com/search/results/people/?facetGeoRegion=%5B%22" + searchRegion + "%3A0%22%5D&keywords=" + searchTerm + "&origin=FACETED_SEARCH"
     # Set range for the loop - should be dynamic
-    amount = list(range(1,137))
+    amount = list(range(1,20))
     
     # Get results page for every page and store them in an array
     results = list()
@@ -121,6 +121,9 @@ with requests.Session() as session:
             names.append(name)
         names.pop(0)
         all_names.extend(names)
+    
+    all_names = list(filter(lambda a: a != '"', all_names))
+    all_names = list(filter(lambda a: a != 'Blockchain', all_names))
     
 '''
 2. Section:
@@ -227,8 +230,8 @@ all_names.pop(idx_pop[0])
 
 # Now the model prediction starts - Using NLKTs Naive Bayes Model
 # retrieve test set
-labeled_names = ([(name, "male") for name in names.words("male.txt")] +
-                     [(name, "female") for name in names.words("female.txt")])
+labeled_names = ([(name, "male") for name in corp.words("male.txt")] +
+                     [(name, "female") for name in corp.words("female.txt")])
 
 # Mix up the list
 random.shuffle(labeled_names)
